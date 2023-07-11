@@ -6,5 +6,5 @@ directory_path = "python/handsignPOC/poc2"
 
 window = tk.Tk()
 
-
+fgehgfia
 
