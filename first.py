@@ -14,8 +14,8 @@ letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
 
 cap = cv2.VideoCapture(0)
 
-gesture_detected = False  # Flag to track whether a gesture has been detected
-gesture_cooldown = 5  # Time in seconds to wait before detecting the next gesture
+gesture_detected = False  
+gesture_cooldown = 3
 last_gesture_time = time.time()
 
 while True:
@@ -38,7 +38,7 @@ while True:
 
                 hand_image = frame[min(hand_pts[:, 1]):max(hand_pts[:, 1]), min(hand_pts[:, 0]):max(hand_pts[:, 0])]
                 
-                # Resize the hand_image to match the model's input shape
+               
                 hand_image_resized = cv2.resize(hand_image, (200, 200))
                 
                 hand_image_gray = cv2.cvtColor(hand_image_resized, cv2.COLOR_BGR2GRAY)
