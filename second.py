@@ -14,7 +14,6 @@ model = load_model('C:/Users/Kritt/vs_code/trained_model.h5')
 
 letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
-# Initialize global variables
 gesture_detected = False
 gesture_cooldown = 1
 last_gesture_time = time.time()
