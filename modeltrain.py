@@ -13,7 +13,7 @@ model = models.Sequential([
     layers.MaxPooling2D((2, 2)),
     layers.Flatten(),
     layers.Dense(64, activation='relu'),
-    layers.Dense(26, activation='softmax')  # 26 classes (A to Z)
+    layers.Dense(26, activation='softmax')  
 ])
 
 model.compile(optimizer='adam',
