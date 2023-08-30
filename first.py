@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from keras.models import load_model
+import time
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -13,6 +14,10 @@ letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
 
 cap = cv2.VideoCapture(0)
 
+gesture_detected = False  # Flag to track whether a gesture has been detected
+gesture_cooldown = 5  # Time in seconds to wait before detecting the next gesture
+last_gesture_time = time.time()
+
 while True:
     ret, frame = cap.read()
 
@@ -20,33 +25,37 @@ while True:
 
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    results = hands.process(rgb_frame)
+    if not gesture_detected or (time.time() - last_gesture_time) >= gesture_cooldown:
+        results = hands.process(rgb_frame)
 
-    if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
-            height, width, _ = frame.shape
-            hand_pts = np.zeros((21, 2), dtype=np.int32)
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                height, width, _ = frame.shape
+                hand_pts = np.zeros((21, 2), dtype=np.int32)
 
-            for i, landmark in enumerate(hand_landmarks.landmark): 
-                hand_pts[i] = (int(landmark.x * width), int(landmark.y * height))
+                for i, landmark in enumerate(hand_landmarks.landmark): 
+                    hand_pts[i] = (int(landmark.x * width), int(landmark.y * height))
 
-            hand_image = frame[min(hand_pts[:, 1]):max(hand_pts[:, 1]), min(hand_pts[:, 0]):max(hand_pts[:, 0])]
-            
-            # Resize the hand_image to match the model's input shape
-            hand_image_resized = cv2.resize(hand_image, (200, 200))
-            
-            hand_image_gray = cv2.cvtColor(hand_image_resized, cv2.COLOR_BGR2GRAY)
-            hand_image_norm = hand_image_gray / 255.0
-            hand_image_input = np.expand_dims(hand_image_norm, axis=-1)
-            hand_image_input = np.expand_dims(hand_image_input, axis=0)
+                hand_image = frame[min(hand_pts[:, 1]):max(hand_pts[:, 1]), min(hand_pts[:, 0]):max(hand_pts[:, 0])]
+                
+                # Resize the hand_image to match the model's input shape
+                hand_image_resized = cv2.resize(hand_image, (200, 200))
+                
+                hand_image_gray = cv2.cvtColor(hand_image_resized, cv2.COLOR_BGR2GRAY)
+                hand_image_norm = hand_image_gray / 255.0
+                hand_image_input = np.expand_dims(hand_image_norm, axis=-1)
+                hand_image_input = np.expand_dims(hand_image_input, axis=0)
 
-            prediction = model.predict(hand_image_input)
-            predicted_class = np.argmax(prediction[0])
-            predicted_letter = letters[predicted_class]
+                prediction = model.predict(hand_image_input)
+                predicted_class = np.argmax(prediction[0])
+                predicted_letter = letters[predicted_class]
 
-            cv2.putText(frame, predicted_letter, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, predicted_letter, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-            print("Detected letter:", predicted_letter)
+                print("Detected letter:", predicted_letter)
+                
+                gesture_detected = True
+                last_gesture_time = time.time()
 
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
@@ -56,6 +65,6 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    
+
 cap.release()
 cv2.destroyAllWindows()
